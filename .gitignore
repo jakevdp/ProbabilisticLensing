@@ -1,0 +1,11 @@
+# python
+*~
+*.pyc
+
+# latex
+*.log
+*.aux
+*.bbl
+*.pdf
+
+
