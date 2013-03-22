@@ -1,0 +1,100 @@
+\documentclass[12pt]{article}
+%\documentclass[preprint]{aastex}
+%\documentclass[twocolumn]{emulateapj} 
+
+\usepackage{graphicx}
+\graphicspath{{../code/figures/}}
+
+\newcommand{\eqn}[1]{eq.~(\ref{eq:#1})}
+\newcommand{\eqns}[2]{eqs.~(\ref{eq:#1}) and (\ref{eq:#2})}
+\newcommand{\fig}[1]{Fig.~\ref{fig:#1}}
+\newcommand{\paper}{document}
+%\newcommand{\sec}[1]{\S\ref{sec:#1}}
+
+\title{Weak Lensing and Hierarchical Learning}
+\author{Jacob T. VanderPlas}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  This document contains a brief description of weak lensing from the point
+  of view of hierarchical graphical models.
+\end{abstract}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{lensing_simple.pdf}
+  \caption{A simple PGM for the lensing problem}
+  \label{fig:PGM_simple}
+\end{figure}
+
+%\keywords{}
+
+\section{Introduction}
+\label{sec:intro}
+
+\fig{PGM_simple} shows a simple directed probabilistic graphical model for
+the weak lensing problem.  The symbols denote the following quantities:
+\begin{itemize}
+  \item $\Omega$ is the parametrization of the cosmological model.  In the
+    simplest case, this might be given by
+    $\Omega = \{\Omega_M, \Omega_\Lambda, \sigma_8\}$.  Often, we will
+    use a flatness prior such that $\Omega_M + \Omega_\Lambda = 1$.  In
+    more sophisticated models, we may add in $w$, the equation of state
+    of dark energy, or perhaps even $w_a$, which is related to the
+    time-derivative of $w$.  These more complicated models will require
+    more sophisticated shear observations (i.e. taking redshift into account).
+
+  \item $M$ is the 3D continuous matter distribution throughout the universe.
+    In the simplest case, $M$ can be thought of as a single realization of
+    a three dimensional Gaussian random field with a covariance specified
+    in terms of the cosmological parameters $\Omega$.
+
+  \item $\gamma_{\rm true}^{(j)}$ is the true shear signal at the 3D position
+    of the $j^{\rm th}$ galaxy.  Given perfect knowledge of $M$, it can
+    be exactly specified from the field equations of General Relativity.
+
+  \item $\Sigma$ is the distribution of intrinsic shape of the sources.  To
+    first order, we can assume this noise is gaussian distributed and
+    uncorrelated with the signal, with an RMS of $\sim 0.3$.
+
+  \item $\epsilon_{\rm int}^{(j)}$ is the intrinsic shape of galaxy $j$, drawn
+    from the distribution parametrized by $\Sigma$.
+
+  \item $A$ is the generating model of the point-spread function for the
+    images.  It includes stochastic contributions related to atmospheric
+    turbulance, as well as non-stochastic contributions related to the
+    telescope optics.  Note that even these non-stochastic contributions
+    may change from exposure to exposure, because the sag of the telescope
+    due to gravity depends on which way it is pointing.
+
+  \item $PSF^{(i)}$ is the point-spread function at the location of the
+    $i^{th}$ star.  These are stars in our galaxy which can be individually
+    resolved: because stars are effectively point sources to high accuracy,
+    the shape of the response on the CCD is a direct estimate of the PSF
+    at that location.
+
+  \item $PSF^{(j)}$ is the point-spread function at the location of the
+    $j^{(th)}$ galaxy.  Galaxies are collections of billions of stars, and
+    are too far away for us to resolve the stars individually.  This PSF
+    is not observed, but affects the observation of the galaxy image.
+
+  \item $\varepsilon^{(j)}_{\rm obs}$ is the observed shape of the galaxy.
+    It can be read directly off the response of the CCD pixels, and
+    in the weak lensing regime is linearly related to the intrinsic
+    shape, the true shear, and the PSF.
+\end{itemize}
+
+\section{Detailed Relationships}
+\label{sec:details}
+
+
+
+
+%\bibliography{filter_info}
+
+%\begin{appendix}
+%\end{appendix}
+
+\end{document}

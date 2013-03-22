@@ -7,11 +7,12 @@ This is created using daft, which can be installed via
 Jake Vanderplas <jakevdp@cs.washington.edu>
 """
 
-#from matplotlib import rc
-#rc("font", family="serif", size=12)
-#rc("text", usetex=True)
+from matplotlib import rc
+rc("font", family="serif", size=12)
+rc("text", usetex=True)
 
 import daft
+import matplotlib.pyplot as plt
 
 # Instantiate the PGM.
 pgm = daft.PGM([7.4, 4.8], origin=[0.3, 1.2])
@@ -73,5 +74,5 @@ pgm.add_plate(daft.Plate([5.2, 2.5, 2.3, 1],
 # Render and save.
 pgm.render()
 pgm.figure.savefig("lensing.pdf", dpi=150)
-#pgm.figure.savefig("lensing.png", dpi=150)
-plt.show()
+
+#plt.show()
