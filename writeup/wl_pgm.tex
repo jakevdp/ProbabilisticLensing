@@ -86,11 +86,160 @@ the weak lensing problem.  The symbols denote the following quantities:
     shape, the true shear, and the PSF.
 \end{itemize}
 
-\section{Detailed Relationships}
-\label{sec:details}
+\section{Procedural Solution}
+The weak lensing problem is, roughly:
 
+\begin{itemize}
+\item{\bf Given the observed noisy galaxy shapes $\varepsilon^{(j)}_{\rm obs}$
+  and the $PSF^{(i)}$ of field stars, compute the likelihood of the
+  cosmological model specified by the parameters $\Omega$.}
+\end{itemize}
 
+Here we'll explain the steps of the procedural solution to the problem
+which is typically used in the field
 
+\subsection{Solve for the PSF}
+The PSF has the form
+\begin{equation}
+  PSF(\Delta\vec{\theta}; \vec{\theta})
+\end{equation}
+where, for now, we'll assume it does not change with time.
+That is, given a position on the sky $\vec{\theta}$ at time $t$, $P$
+specifies where on the plane the light from a point source will be
+spread to.  The form of the PSF must be parametrized somehow.  This can
+be either a simple 2D gaussian fit, or perhaps a wavelet decomposition.
+If we choose basis functions $p_k(\Delta\vec{\theta})$, then we may write
+\begin{equation}
+  PSF(\Delta\vec{\theta}; \vec{\theta}, t)
+  = \sum_k A_k(\vec\theta) p_k(\Delta\vec{\theta}).
+\end{equation}
+It is helpful to choose the basis functions such that the $A_k$ are
+uncorrelated: this is why a PCA-based is often used instead of a standard
+wavelet basis.
+
+Now this becomes a classic regression problem.  Given the parameters
+$A_{ik} \equiv A_k(\vec\theta_i)$, we want estimates of the parameters
+$A_{jk} \equiv A_k(\vec\theta_j)$.  This is often solved using a typical
+maximum likelihood approach.
+
+\subsection{Measure Galaxy Shapes}
+For each galaxy $j$, our raw data is the pixel-level image of the galaxy.
+Given this image along with the estimate of the PSF, we'd like to infer
+the shear $\gamma_j$.
+
+The distortion of the image is most conveniently expressed via the complex
+shear
+\begin{equation}
+  \gamma \equiv \gamma_1 + i\gamma_2.
+\end{equation}
+This parametrization comes from the distortion matrix of the image,
+\begin{equation}
+  (1 + A) = \left(
+  \begin{array}{cc}
+     1 - \kappa - \gamma_1 & -\gamma_2\\
+     -\gamma_2 & 1 - \kappa + \gamma_1
+  \end{array}
+  \right)
+\end{equation}
+where $\kappa$ is known as the {\it convergence} and $\gamma_{1, 2}$ are
+the components of the shear.  To first order, this distortion is directly
+related to the ellipticity $e$ of the measured image.
+\begin{equation}
+  e^{(j)}_{\rm obs} = PSF^{(j)} \ast (e^{(j)}_{\rm int} + \gamma)
+\end{equation}
+where $e^{(j)}_{\rm int}$ is the intrinsic ellipticity of the $j^{\rm th}$
+galaxy.  Thus, assuming the intrinsic ellipticity is white noise, the
+determination of $\gamma$ comes down to measuring the ellipticity of the
+galaxy image, deconvolved with the PSF.
+
+\subsection{Compute Cosmological Likelihood}
+The next step involves taking these noisy shear estimates $\hat{\gamma}_j$,
+and constraining the cosmological parameters $\Omega$.  The cosmological
+parameters consist of things like the total matter density $\Omega_M$, the
+dark energy density $\Omega_\Lambda$, the power spectrum normalization
+$\sigma_8$, the dark energy equation of state $w$, the baryonic fraction
+$\Omega_b$, and other parameters.  The details are interesting, but for
+our purposes we can move forward using the mapping between cosmological
+parameters and the matter power spectrum.
+
+\subsubsection{The Details}
+First we'll take a bit of a step back.  The distribution of matter in the
+universe (what our model in \fig{PGM_simple} calls $M$) is given by the
+density $\rho(\vec{x})$, usually measured in grams per cubic centimeter.
+For cosmological purposes, we care about this density down to the scales
+of galaxy groups or clusters, greater than, say, a million light years across.
+
+For convenience we define the density contrast $\delta$, which is the
+normalized deviation about the mean density:
+\begin{equation}
+  \delta(\vec{x}) = \frac{\rho(\vec{x}) - \bar{\rho}}{\bar{\rho}}.
+\end{equation}
+The correlation function is given by
+\begin{equation}
+  \xi_\delta(\vec{r}) = \langle \delta(\vec{x})\delta(\vec{x} + \vec{r})\rangle
+\end{equation}
+where angled brackets denote the average across all space.  The Fourier
+transform of the correlation function is the power spectrum,
+$P_\delta(\vec{k})$.  Because the distribution of matter is homogeneous and
+isotropic, only the magnitude of the wave number $\vec{k}$ really matters.
+
+But how is $\delta$ related to shear?  Well, it can be shown that the shear
+power spectrum $P_\gamma(\ell)$ (here $\ell$ is the magnitude of a 2D angular
+wave number, where $\vec{k}$ is a 3D spatial wave number) is related to
+$P_\delta(k)$ by a simple integral:
+\begin{equation}
+  P_\gamma(\ell) = \int_0^{\inf} {\rm d}r W(r;\Omega) P_\delta(k = \ell/r)
+\end{equation}
+where $W(r)$ is a weight function which depends on the cosmology $\Omega$.
+
+The interesting thing to note is that given a cosmological model $\Omega$,
+it is possible to compute the functional form of $P_\delta(\vec{k})$, and
+therefore possible to compute the power spectrum $P_\gamma(\ell)$.  In
+practice, this involves some rather complicated empirical fits to simulations,
+the details of which are not important right now.
+
+\subsubsection{The Likelihood}
+With all this in mind, then, given specified model parameters $\Omega$, we
+can compute the expected power spectrum $P_\gamma(\ell)$ and compare it to
+the observed power spectrum $\hat{P}_\gamma(\ell)$, which is generally computed
+via its Fourier transform, the shear correlation function.
+There are some more details involving the relationship between the multiple
+possible correlation functions, E/B decompositions of the spin-2 shear
+tensor, but again we can ignore those for now.
+
+Thus the likelihood computation essentially short-circuits specification of
+the mass distribution $M$.  The advantage of this is that the cosmological
+observables can be directly related to the observed galaxy shapes through
+the shear correlation function/power spectrum.  The disadvantage is that
+the $\gamma_j$ are conditionally independent only if $M$ is specified.
+When we perform the computation without specifying $M$, we must consider
+all shear values at once when computing the likelihood of $\Omega$.
+
+\section{Infinite Computational Power...}
+What if we could sample $M$?  This is very difficult, of course,
+because $M$ represents a continuous field $\rho(\vec{x})$ sampled
+throughout space.
+
+But suppose we had infinite computational power.  Then instead of working
+backwards from $\varepsilon_{\rm obs}$ to $\Omega$, we could work forward
+in a generative sense from $\Omega$ to $\varepsilon_{\rm obs}$.  Given
+cosmological parameters $M$, we can compute the power spectrum of the
+density $P_\delta(k)$.  Given $P_\delta(k)$ we could ``draw''
+$\rho(\vec{x})$, a continuous scalar field throughout all of three dimensional
+space.  Given this $\rho(\vec{x})$, each $\gamma_j$ is {\it completely}
+specified, independent of the values of the other $\gamma_j$s.  We can
+then compute the likelihood based on these estimates in an entirely
+data-parallel manner, and marginalize over $M$ to arrive at our posterior
+on $\Omega$.
+
+The advantages here are that the computation is completely data parallel:
+given a large cluster, it would be possible to evaluate each source
+plane independently, computing the full marginalization over the PSF
+model and the shape noise.  There would be no need to compute the
+spatial correlation function or power spectrum of the observed shear.
+
+The disadvantage, of course, is that it's entirely computationally infeasible.
+Details, details...
 
 %\bibliography{filter_info}
 
